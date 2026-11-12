@@ -102,9 +102,19 @@ async function startServer() {
   try {
     await connectDB();
 
-    app.listen(config.port, '0.0.0.0', () => {
+    const server = app.listen(config.port, '0.0.0.0', () => {
       logger.info(`⚡ Server running on http://0.0.0.0:${config.port}`);
       logger.info(`⚡ API available at http://localhost:${config.port}/api/v1`);
+    });
+
+    server.on('error', (err: any) => {
+      if (err.code === 'EADDRINUSE') {
+        logger.error(`❌ Port ${config.port} is already in use by another process.`);
+        logger.error(`👉 Running 'npm run clean-ports' will terminate the conflicting process.`);
+      } else {
+        logger.error({ err }, 'Server socket error');
+      }
+      process.exit(1);
     });
   } catch (error) {
     logger.error({ err: error }, 'Fatal error during server startup');

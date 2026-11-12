@@ -2,20 +2,25 @@
   "name": "shree-shakti-billing",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "description": "Shree Shakti Billing - Premium Full-Stack Business Billing & Management System",
   "workspaces": [
     "server",
     "client"
   ],
   "scripts": {
-    "dev": "npm.cmd --workspace=server run dev & npm.cmd --workspace=client run dev",
-    "dev:server": "npm.cmd --workspace=server run dev",
-    "dev:client": "npm.cmd --workspace=client run dev",
+    "dev": "node scripts/clean-ports.js && concurrently -n \"SERVER,CLIENT\" -c \"blue.bold,green.bold\" \"npm.cmd --workspace=server run dev\" \"npm.cmd --workspace=client run dev\"",
+    "dev:server": "node scripts/clean-ports.js && npm.cmd --workspace=server run dev",
+    "dev:client": "node scripts/clean-ports.js && npm.cmd --workspace=client run dev",
+    "clean-ports": "node scripts/clean-ports.js",
     "build": "npm.cmd --workspace=server run build && npm.cmd --workspace=client run build",
     "build:server": "npm.cmd --workspace=server run build",
     "build:client": "npm.cmd --workspace=client run build",
-    "test": "npm.cmd --workspace=server run test",
+    "test": "npm.cmd --workspace=server test",
     "seed": "npm.cmd --workspace=server run seed"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
   },
   "keywords": [
     "billing",
