@@ -731,25 +731,29 @@ export const InvoiceBuilderPage: React.FC = () => {
                   <span>Gross Subtotal:</span>
                   <span className="font-semibold text-slate-900">{formatINR(calculated.subtotal)}</span>
                 </div>
-                <div className="flex justify-between text-slate-600">
-                  <span>Taxable Amount:</span>
-                  <span className="font-semibold text-slate-900">{formatINR(calculated.taxableAmount)}</span>
-                </div>
-                {isInterState ? (
-                  <div className="flex justify-between text-blue-700">
-                    <span>IGST:</span>
-                    <span className="font-semibold">{formatINR(calculated.totalIgst)}</span>
-                  </div>
-                ) : (
+                {settings?.isGstEnabled && (
                   <>
-                    <div className="flex justify-between text-blue-700">
-                      <span>CGST:</span>
-                      <span className="font-semibold">{formatINR(calculated.totalCgst)}</span>
+                    <div className="flex justify-between text-slate-600">
+                      <span>Taxable Amount:</span>
+                      <span className="font-semibold text-slate-900">{formatINR(calculated.taxableAmount)}</span>
                     </div>
-                    <div className="flex justify-between text-blue-700">
-                      <span>SGST:</span>
-                      <span className="font-semibold">{formatINR(calculated.totalSgst)}</span>
-                    </div>
+                    {isInterState ? (
+                      <div className="flex justify-between text-blue-700">
+                        <span>IGST:</span>
+                        <span className="font-semibold">{formatINR(calculated.totalIgst)}</span>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="flex justify-between text-blue-700">
+                          <span>CGST:</span>
+                          <span className="font-semibold">{formatINR(calculated.totalCgst)}</span>
+                        </div>
+                        <div className="flex justify-between text-blue-700">
+                          <span>SGST:</span>
+                          <span className="font-semibold">{formatINR(calculated.totalSgst)}</span>
+                        </div>
+                      </>
+                    )}
                   </>
                 )}
                 {calculated.roundOff !== 0 && (
@@ -899,12 +903,9 @@ export const InvoiceBuilderPage: React.FC = () => {
                 <tr>
                   <th className="py-2 px-3 text-center w-8">#</th>
                   <th className="py-2 px-3">Item Description</th>
-                  <th className="py-2 px-3 text-center">HSN</th>
-                  <th className="py-2 px-3 text-center">Qty</th>
-                  <th className="py-2 px-3 text-center">Unit</th>
-                  <th className="py-2 px-3 text-right">Rate (₹)</th>
-                  <th className="py-2 px-3 text-center">GST %</th>
-                  <th className="py-2 px-3 text-right">Amount (₹)</th>
+                  <th className="py-2 px-3 text-center w-20">Qty</th>
+                  <th className="py-2 px-3 text-right w-28">Rate (₹)</th>
+                  <th className="py-2 px-3 text-right w-32">Amount (₹)</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
@@ -917,11 +918,8 @@ export const InvoiceBuilderPage: React.FC = () => {
                         <div className="text-[10px] text-slate-500 font-normal">{it.description}</div>
                       )}
                     </td>
-                    <td className="py-2 px-3 text-center font-mono text-slate-600">{it.hsn || '-'}</td>
                     <td className="py-2 px-3 text-center font-bold">{it.quantity}</td>
-                    <td className="py-2 px-3 text-center text-slate-600">{it.unit}</td>
                     <td className="py-2 px-3 text-right">{it.rate.toFixed(2)}</td>
-                    <td className="py-2 px-3 text-center">{it.gstRate}%</td>
                     <td className="py-2 px-3 text-right font-bold text-slate-900">
                       {it.totalAmount.toFixed(2)}
                     </td>
@@ -952,29 +950,14 @@ export const InvoiceBuilderPage: React.FC = () => {
 
               <div className="p-3 space-y-1">
                 <div className="flex justify-between">
-                  <span className="text-slate-500">Subtotal (Gross):</span>
+                  <span className="text-slate-500">Subtotal:</span>
                   <span className="font-bold text-slate-900">{formatINR(calculated.subtotal)}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Taxable Amount:</span>
-                  <span className="font-bold text-slate-900">{formatINR(calculated.taxableAmount)}</span>
-                </div>
-                {isInterState ? (
-                  <div className="flex justify-between text-blue-700">
-                    <span>IGST:</span>
-                    <span className="font-semibold">{formatINR(calculated.totalIgst)}</span>
+                {calculated.totalDiscount > 0 && (
+                  <div className="flex justify-between text-emerald-600">
+                    <span>Discount:</span>
+                    <span className="font-semibold">- {formatINR(calculated.totalDiscount)}</span>
                   </div>
-                ) : (
-                  <>
-                    <div className="flex justify-between text-blue-700">
-                      <span>CGST:</span>
-                      <span className="font-semibold">{formatINR(calculated.totalCgst)}</span>
-                    </div>
-                    <div className="flex justify-between text-blue-700">
-                      <span>SGST:</span>
-                      <span className="font-semibold">{formatINR(calculated.totalSgst)}</span>
-                    </div>
-                  </>
                 )}
                 {calculated.roundOff !== 0 && (
                   <div className="flex justify-between text-slate-500">

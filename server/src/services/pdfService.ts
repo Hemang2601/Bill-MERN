@@ -26,7 +26,6 @@ export function buildInvoiceHtml(invoice: IInvoice, settings: any): string {
   const signatureFile = invoice.managerUsername === 'hiren' ? 'hiren.png' : 'suresh.png';
   const signatureDataUri = getAssetBase64(`src/assets/images/${signatureFile}`);
 
-  const hasHsn = invoice.items.some((i) => i.hsn && i.hsn.trim().length > 0);
   const words = amountInWords(invoice.grandTotal);
 
   const businessName = settings?.businessName || 'SHREE SHAKTI ELECTRIC';
@@ -35,10 +34,6 @@ export function buildInvoiceHtml(invoice: IInvoice, settings: any): string {
   const phone2 = settings?.phone2 || '+91 70160 55176';
   const address = settings?.address || 'Shreeji Complex, Main Bazar, Rajkot';
   const gstin = settings?.gstin || '';
-  const bankName = settings?.bankName || 'State Bank of India';
-  const accountNumber = settings?.accountNumber || '';
-  const ifscCode = settings?.ifscCode || '';
-  const upiId = settings?.upiId || '';
 
   const termsList =
     invoice.terms && invoice.terms.length > 0
@@ -252,18 +247,6 @@ export function buildInvoiceHtml(invoice: IInvoice, settings: any): string {
       font-style: italic;
       margin-top: 2px;
     }
-    .bank-block {
-      background: #f8fafc;
-      padding: 5px 8px;
-      border-radius: 4px;
-      border: 1px dashed #cbd5e1;
-      font-size: 9px;
-    }
-    .bank-title {
-      font-weight: 700;
-      color: #334155;
-      margin-bottom: 2px;
-    }
     .sum-row {
       display: flex;
       justify-content: space-between;
@@ -358,8 +341,8 @@ export function buildInvoiceHtml(invoice: IInvoice, settings: any): string {
   <div class="invoice-container">
     <!-- Top Bar -->
     <div class="top-meta-bar">
-      <span>TAX INVOICE</span>
-      <span>GST / RETAIL BILL OF SUPPLY</span>
+      <span>${gstin ? 'TAX INVOICE' : 'RETAIL INVOICE'}</span>
+      <span>${gstin ? 'GST / RETAIL BILL OF SUPPLY' : 'RETAIL BILL'}</span>
       <span>ORIGINAL FOR RECIPIENT</span>
     </div>
 
@@ -425,16 +408,6 @@ export function buildInvoiceHtml(invoice: IInvoice, settings: any): string {
             : ''
         }
         <div class="detail-row">
-          <span class="detail-label">Payment Status:</span>
-          <span class="detail-val" style="color: ${
-            invoice.paymentStatus === 'PAID'
-              ? '#16a34a'
-              : invoice.paymentStatus === 'PARTIAL'
-              ? '#d97706'
-              : '#dc2626'
-          };">${invoice.paymentStatus}</span>
-        </div>
-        <div class="detail-row">
           <span class="detail-label">Issued By:</span>
           <span class="detail-val">${invoice.managerName || invoice.managerUsername.toUpperCase()}</span>
         </div>
@@ -446,14 +419,11 @@ export function buildInvoiceHtml(invoice: IInvoice, settings: any): string {
       <table>
         <thead>
           <tr>
-            <th style="width: 32px;" class="text-center">#</th>
+            <th style="width: 35px;" class="text-center">#</th>
             <th style="width: auto;">Item Description</th>
-            ${hasHsn ? '<th style="width: 55px;" class="text-center">HSN/SAC</th>' : ''}
-            <th style="width: 45px;" class="text-center">Qty</th>
-            <th style="width: 45px;" class="text-center">Unit</th>
-            <th style="width: 70px;" class="text-right">Rate</th>
-            <th style="width: 55px;" class="text-center">GST %</th>
-            <th style="width: 80px;" class="text-right">Amount (₹)</th>
+            <th style="width: 60px;" class="text-center">Qty</th>
+            <th style="width: 90px;" class="text-right">Rate</th>
+            <th style="width: 100px;" class="text-right">Amount (₹)</th>
           </tr>
         </thead>
         <tbody>
@@ -466,11 +436,8 @@ export function buildInvoiceHtml(invoice: IInvoice, settings: any): string {
                 <strong>${item.name}</strong>
                 ${item.description ? `<div class="item-desc">${item.description}</div>` : ''}
               </td>
-              ${hasHsn ? `<td class="text-center">${item.hsn || '-'}</td>` : ''}
               <td class="text-center">${item.quantity}</td>
-              <td class="text-center">${item.unit || 'Nos'}</td>
               <td class="text-right">${item.rate.toFixed(2)}</td>
-              <td class="text-center">${item.gstRate || 0}%</td>
               <td class="text-right"><strong>${item.totalAmount.toFixed(2)}</strong></td>
             </tr>
           `
@@ -487,24 +454,16 @@ export function buildInvoiceHtml(invoice: IInvoice, settings: any): string {
           <div class="words-title">Amount in Words:</div>
           <div class="words-text">${words}</div>
         </div>
-
-        ${
-          bankName && accountNumber
-            ? `
-          <div class="bank-block">
-            <div class="bank-title">Bank Transfer & UPI Details:</div>
-            <div>Bank: <strong>${bankName}</strong> | A/C: <strong>${accountNumber}</strong> | IFSC: <strong>${ifscCode}</strong></div>
-            ${upiId ? `<div>UPI ID: <strong>${upiId}</strong></div>` : ''}
-          </div>
-        `
-            : ''
-        }
       </div>
 
       <div class="summary-right">
         <div class="sum-row">
-          <span>Subtotal (Gross):</span>
-          <span>${formatINR(invoice.subtotal)}</span>
+          <span>Subtotal:</span>
+          <span>${formatINR(
+            invoice.totalDiscount > 0
+              ? invoice.grandTotal + invoice.totalDiscount - (invoice.roundOff || 0)
+              : invoice.grandTotal - (invoice.roundOff || 0)
+          )}</span>
         </div>
         ${
           invoice.totalDiscount > 0
@@ -515,29 +474,6 @@ export function buildInvoiceHtml(invoice: IInvoice, settings: any): string {
           </div>
         `
             : ''
-        }
-        <div class="sum-row">
-          <span>Taxable Amount:</span>
-          <span>${formatINR(invoice.taxableAmount)}</span>
-        </div>
-        ${
-          invoice.isInterState
-            ? `
-          <div class="sum-row">
-            <span>IGST:</span>
-            <span>${formatINR(invoice.totalIgst)}</span>
-          </div>
-        `
-            : `
-          <div class="sum-row">
-            <span>CGST:</span>
-            <span>${formatINR(invoice.totalCgst)}</span>
-          </div>
-          <div class="sum-row">
-            <span>SGST:</span>
-            <span>${formatINR(invoice.totalSgst)}</span>
-          </div>
-        `
         }
         ${
           invoice.roundOff !== 0
